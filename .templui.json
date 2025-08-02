@@ -1,0 +1,7 @@
+{
+  "componentsDir": "components",
+  "utilsDir": "pkg",
+  "moduleName": "github.com/eif-courses/civilregistry",
+  "jsDir": "assets/js",
+  "jsPublicPath": "/assets/js"
+}
