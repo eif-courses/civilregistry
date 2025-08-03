@@ -27,6 +27,24 @@ func Load() *Config {
 	}
 }
 
+// LoadTest loads test-specific configuration
+func LoadTest() *Config {
+	// Load .env.test file if it exists
+	if err := godotenv.Load(".env.test"); err != nil {
+		log.Println("No .env.test file found, trying .env file")
+		// Fallback to regular .env file
+		if err := godotenv.Load(); err != nil {
+			log.Println("No .env file found, using environment variables or defaults")
+		}
+	}
+
+	return &Config{
+		DatabaseURL: getEnv("TEST_DATABASE_URL", getEnv("DATABASE_URL", "postgres://postgres:root@localhost:5432/civilregistrytest?sslmode=disable")),
+		Port:        getEnvAsInt("PORT", 8080),
+		LogLevel:    getEnv("LOG_LEVEL", "debug"),
+	}
+}
+
 func getEnv(key, defaultValue string) string {
 	if value := os.Getenv(key); value != "" {
 		return value

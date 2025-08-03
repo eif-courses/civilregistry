@@ -31,7 +31,7 @@ tasks:
   reset:
     desc: "Run migrations down (reset)"
     cmds:
-      - goose up
+      - goose reset
     silent: false
   gen:
     desc: "Generate go files from sqlc queries"

@@ -39,11 +39,11 @@ templ PostsPage(posts []repository.Post) {
                 } else {
                     for _, post := range posts {
                         <div class="bg-white rounded-lg shadow p-6">
-                            // Convert pgtype.Text to string by accessing .String field
-                            <h3 class="text-xl font-semibold text-gray-800 mb-2">{post.Title.String}</h3>
-                            <p class="text-gray-600">{post.Body.String}</p>
+                            // Direct string usage - no .String needed
+                            <h3 class="text-xl font-semibold text-gray-800 mb-2">{ post.Title }</h3>
+                            <p class="text-gray-600">{ post.Body }</p>
                             <div class="mt-4 text-sm text-gray-500">
-                                ID: {post.ID.String()}
+                                ID: { post.ID.String() }
                             </div>
                         </div>
                     }

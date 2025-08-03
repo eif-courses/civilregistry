@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/eif-courses/civilregistry/internal/repository"
-	"github.com/jackc/pgx/v5/pgtype"
 	"go.uber.org/zap"
 )
 
@@ -41,19 +40,9 @@ func (s *Service) CreatePost(ctx context.Context, title, body string) (*reposito
 		return nil, fmt.Errorf("title and body are required")
 	}
 
-	// Convert string to pgtype.Text
-	var titleText pgtype.Text
-	var bodyText pgtype.Text
-
-	titleText.String = title
-	titleText.Valid = true
-
-	bodyText.String = body
-	bodyText.Valid = true
-
 	post, err := s.repo.CreatePost(ctx, repository.CreatePostParams{
-		Title: titleText,
-		Body:  bodyText,
+		Title: title,
+		Body:  body,
 	})
 	if err != nil {
 		s.logger.Errorf("Failed to create post: %v", err)

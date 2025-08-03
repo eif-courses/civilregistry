@@ -16,7 +16,10 @@ https://www.postgresql.org/download/
 - Templ(template engine) https://templ.guide/
 - TemplUI (component lib) https://templui.io/
 
-
 ### Project structure
 - Rest API 
 - MVC*
+
+### Tests 
+- focused only Unit test handlers and service.go for REST API
+- need add other type test like integration

@@ -9,18 +9,17 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createPost = `-- name: CreatePost :one
-INSERT INTO post (title, body)
-VALUES ($1, $2)
+INSERT INTO post (id, title, body)
+VALUES (uuid_generate_v4(),$1, $2)
 RETURNING id, title, body
 `
 
 type CreatePostParams struct {
-	Title pgtype.Text `json:"title"`
-	Body  pgtype.Text `json:"body"`
+	Title string `json:"title"`
+	Body  string `json:"body"`
 }
 
 func (q *Queries) CreatePost(ctx context.Context, arg CreatePostParams) (Post, error) {

@@ -6,11 +6,10 @@ package repository
 
 import (
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Post struct {
-	ID    uuid.UUID   `json:"id"`
-	Title pgtype.Text `json:"title"`
-	Body  pgtype.Text `json:"body"`
+	ID    uuid.UUID `json:"id"`
+	Title string    `json:"title"`
+	Body  string    `json:"body"`
 }
