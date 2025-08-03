@@ -3,7 +3,7 @@ package api
 import (
 	"github.com/eif-courses/civilregistry/internal/api/civil"
 	"github.com/eif-courses/civilregistry/internal/repository"
-	"github.com/eif-courses/civilregistry/internal/web"
+	webcivil "github.com/eif-courses/civilregistry/internal/web/civil"
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
 	"net/http"
@@ -17,7 +17,7 @@ func NewRouter(queries *repository.Queries, log *zap.SugaredLogger) http.Handler
 	r.Mount("/api/civil", civil.CivilRouter(queries, log))
 
 	// Add web routes - IMPORTANT: Add this!
-	web.SetupRoutes(r, queries, log)
+	webcivil.SetupRoutes(r, queries, log)
 
 	// Serve assets
 	workDir, _ := filepath.Abs(".")
