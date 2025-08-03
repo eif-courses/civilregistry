@@ -1,0 +1,54 @@
+package frontend
+
+import "github.com/eif-courses/civilregistry/internal/repository"
+
+templ HomePage() {
+    @Layout("Civil Registry - Home") {
+        <div class="max-w-4xl mx-auto">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6">Welcome to Civil Registry</h2>
+            <div class="bg-white rounded-lg shadow p-6">
+                <p class="text-gray-600 mb-4">
+                    This is the public portal for civil registry services.
+                </p>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="border rounded p-4">
+                        <h3 class="font-semibold text-lg mb-2">Public Announcements</h3>
+                        <p class="text-gray-600">View latest public announcements and notices.</p>
+                        <a href="/posts" class="inline-block mt-2 text-blue-600 hover:text-blue-800">View Posts →</a>
+                    </div>
+                    <div class="border rounded p-4">
+                        <h3 class="font-semibold text-lg mb-2">API Access</h3>
+                        <p class="text-gray-600">Access our public API endpoints.</p>
+                        <a href="/api/civil/health" class="inline-block mt-2 text-blue-600 hover:text-blue-800">Health Check →</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+templ PostsPage(posts []repository.Post) {
+    @Layout("Public Posts") {
+        <div class="max-w-4xl mx-auto">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6">Public Announcements</h2>
+            <div class="space-y-4">
+                if len(posts) == 0 {
+                    <div class="bg-white rounded-lg shadow p-6 text-center">
+                        <p class="text-gray-600">No posts available at the moment.</p>
+                    </div>
+                } else {
+                    for _, post := range posts {
+                        <div class="bg-white rounded-lg shadow p-6">
+                            // Convert pgtype.Text to string by accessing .String field
+                            <h3 class="text-xl font-semibold text-gray-800 mb-2">{post.Title.String}</h3>
+                            <p class="text-gray-600">{post.Body.String}</p>
+                            <div class="mt-4 text-sm text-gray-500">
+                                ID: {post.ID.String()}
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    }
+}

@@ -23,3 +23,18 @@ tasks:
       - task server &
       - task tailwind
     silent: false
+  up:
+    desc: "Run migrations up"
+    cmds:
+      - goose up
+    silent: false
+  reset:
+    desc: "Run migrations down (reset)"
+    cmds:
+      - goose up
+    silent: false
+  gen:
+    desc: "Generate go files from sqlc queries"
+    cmds:
+      - sqlc generate
+    silent: false
