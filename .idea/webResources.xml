@@ -6,6 +6,7 @@
         <entryData>
           <resourceRoots>
             <path value="file://$PROJECT_DIR$/components/frontend" />
+            <path value="file://$PROJECT_DIR$/internal/web/ui" />
           </resourceRoots>
         </entryData>
       </entry>

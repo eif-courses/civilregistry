@@ -1,8 +1,8 @@
 package civil
 
 import (
-	"github.com/eif-courses/civilregistry/components/frontend" // Make sure this matches your folder structure
 	restapi "github.com/eif-courses/civilregistry/internal/api/civil"
+	"github.com/eif-courses/civilregistry/internal/web/ui"
 	"go.uber.org/zap"
 	"net/http"
 )
@@ -22,7 +22,7 @@ func NewHandlers(service *restapi.Service, logger *zap.SugaredLogger) *Handlers 
 func (h *Handlers) HomePage(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 
-	component := frontend.HomePage()
+	component := ui.HomePage()
 	if err := component.Render(r.Context(), w); err != nil {
 		h.logger.Errorf("Failed to render home page: %v", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -39,7 +39,7 @@ func (h *Handlers) PostsPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	component := frontend.PostsPage(posts)
+	component := ui.PostsPage(posts)
 	if err := component.Render(r.Context(), w); err != nil {
 		h.logger.Errorf("Failed to render posts page: %v", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
