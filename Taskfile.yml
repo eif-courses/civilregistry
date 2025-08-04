@@ -1,21 +1,33 @@
 version: '3'
 
 tasks:
+  # 🛠 Run Templ in watch mode:
+  # - generates Go code from .templ files
+  # - watches for changes and proxies to backend
   templ:
     cmds:
       - templ generate --watch --proxy="http://localhost:8080" --open-browser=false
     silent: false
 
+  # 🚀 Start the backend server in watch mode:
+  # - uses air to rebuild on code changes
+  # - binary output goes to tmp/bin/main.exe
   server:
     cmds:
       - air --build.cmd "go build -o tmp/bin/main.exe ./cmd/server/main.go" --build.bin "tmp/bin/main.exe" --build.delay "100" --build.exclude_dir "node_modules" --build.include_ext "go" --build.stop_on_error "false" --misc.clean_on_exit true
     silent: false
 
+  # 🎨 Watch and compile Tailwind CSS:
+  # - input: assets/css/input.css
+  # - output: assets/css/output.css
   tailwind:
     cmds:
       - tailwindcss -i ./assets/css/input.css -o ./assets/css/output.css --watch
     silent: false
 
+  # 🧪 Dev task: run all watchers in parallel
+  # - templ + backend + tailwind
+  # - ideal for local development
   dev:
     desc: "Run all watchers in parallel"
     cmds:
@@ -23,16 +35,22 @@ tasks:
       - task server &
       - task tailwind
     silent: false
+
+  # 📦 Run DB migrations up (using goose)
   up:
     desc: "Run migrations up"
     cmds:
       - goose up
     silent: false
+
+  # 🔄 Reset DB (drops all & reapplies)
   reset:
     desc: "Run migrations down (reset)"
     cmds:
       - goose reset
     silent: false
+
+  # ⚙ Generate Go types from SQL queries (using sqlc)
   gen:
     desc: "Generate go files from sqlc queries"
     cmds:
