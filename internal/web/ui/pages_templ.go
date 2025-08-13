@@ -8,7 +8,7 @@ package ui
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "github.com/eif-courses/civilregistry/internal/repository"
+import "github.com/eif-courses/civilregistry/internal/generated/repository"
 import "github.com/eif-courses/civilregistry/internal/web/components/code"
 import "github.com/eif-courses/civilregistry/internal/web/components/button"
 

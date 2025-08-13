@@ -1,23 +1,42 @@
 package api
 
 import (
-	"github.com/eif-courses/civilregistry/internal/api/civil"
-	"github.com/eif-courses/civilregistry/internal/repository"
-	webcivil "github.com/eif-courses/civilregistry/internal/web/civil"
-	"github.com/go-chi/chi/v5"
-	"go.uber.org/zap"
 	"net/http"
 	"path/filepath"
+
+	"github.com/eif-courses/civilregistry/internal/generated/api/post"
+	"github.com/eif-courses/civilregistry/internal/generated/repository"
+	frontendpost "github.com/eif-courses/civilregistry/internal/web/post"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	httpSwagger "github.com/swaggo/http-swagger/v2"
+	"go.uber.org/zap"
 )
 
 func NewRouter(queries *repository.Queries, log *zap.SugaredLogger) http.Handler {
 	r := chi.NewRouter()
 
-	// Mount API subrouter
-	r.Mount("/api/civil", civil.CivilRouter(queries, log))
+	// Add middleware
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+	r.Use(middleware.RequestID)
+	r.Use(middleware.RealIP)
 
-	// Add web routes - IMPORTANT: Add this!
-	webcivil.SetupRoutes(r, queries, log)
+	// Swagger documentation route
+	r.Get("/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL("http://localhost:8080/swagger/doc.json"),
+	))
+
+	// API routes
+	r.Route("/api", func(r chi.Router) {
+		r.Mount("/post", post.PostRouter(queries, log))
+
+		// FORCE REFERENCE: This ensures Swagger sees the handlers
+		_ = post.NewHandlers
+	})
+
+	// Web routes
+	frontendpost.SetupRoutes(r, queries, log)
 
 	// Serve assets
 	workDir, _ := filepath.Abs(".")
@@ -27,7 +46,8 @@ func NewRouter(queries *repository.Queries, log *zap.SugaredLogger) http.Handler
 	return r
 }
 
-// FileServer stays the same...
+// FileServer conveniently sets up a http.FileServer handler to serve
+// static files from a http.FileSystem.
 func FileServer(r chi.Router, path string, root http.FileSystem) {
 	if path == "" {
 		panic("FileServer: empty path")

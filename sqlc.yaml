@@ -11,7 +11,7 @@ sql:
         emit_interface: false
         emit_exact_table_names: false
         package: "repository"
-        out: "internal/repository"
+        out: "internal/generated/repository"
         sql_package: "pgx/v5"
         overrides:
           - db_type: "uuid"

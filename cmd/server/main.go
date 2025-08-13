@@ -7,10 +7,30 @@ import (
 
 	"github.com/eif-courses/civilregistry/internal/api"
 	"github.com/eif-courses/civilregistry/internal/config"
+	"github.com/eif-courses/civilregistry/internal/generated/repository"
 	"github.com/eif-courses/civilregistry/internal/logger"
-	"github.com/eif-courses/civilregistry/internal/repository"
+
+	// Import generated swagger docs
+	_ "github.com/eif-courses/civilregistry/docs"
+	_ "github.com/eif-courses/civilregistry/internal/generated/api/post"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
+
+// @title Civil Registry API
+// @version 1.0
+// @description This is the Civil Registry API server with auto-generated documentation.
+// @termsOfService http://swagger.io/terms/
+
+// @contact.name API Support
+// @contact.url http://www.swagger.io/support
+// @contact.email support@swagger.io
+
+// @license.name Apache 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @host localhost:8080
+// @BasePath /
+// @schemes http https
 
 func main() {
 	log := logger.NewLogger()
@@ -32,7 +52,11 @@ func main() {
 	router := api.NewRouter(queries, log)
 
 	addr := fmt.Sprintf(":%d", cfg.Port)
-	log.Infow("Starting server", "port", cfg.Port, "database", "connected")
+	log.Infow("Starting server",
+		"port", cfg.Port,
+		"database", "connected",
+		"swagger", fmt.Sprintf("http://localhost:%d/swagger/index.html", cfg.Port),
+	)
 
 	err = http.ListenAndServe(addr, router)
 	if err != nil {

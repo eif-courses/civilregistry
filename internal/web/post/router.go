@@ -1,8 +1,8 @@
-package civil
+package post
 
 import (
-	restapi "github.com/eif-courses/civilregistry/internal/api/civil"
-	"github.com/eif-courses/civilregistry/internal/repository"
+	restapi "github.com/eif-courses/civilregistry/internal/generated/api/post"
+	"github.com/eif-courses/civilregistry/internal/generated/repository"
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
 )

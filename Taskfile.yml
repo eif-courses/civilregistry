@@ -30,6 +30,17 @@ tasks:
   # - ideal for local development
   dev:
     desc: "Run all watchers in parallel"
+    platforms: [windows]
+    cmds:
+      - task templ &
+      - task server &
+      - task tailwind
+    silent: false
+
+  # Alternative dev task for Unix-like systems
+  dev-unix:
+    desc: "Run all watchers in parallel (Unix/Linux/macOS)"
+    platforms: [linux, darwin]
     cmds:
       - task templ &
       - task server &
@@ -55,4 +66,287 @@ tasks:
     desc: "Generate go files from sqlc queries"
     cmds:
       - sqlc generate
+    silent: false
+
+  # 🚀 Generate API code for a specific feature
+  gen-api:
+    desc: "Generate API handlers, service, and router for a feature"
+    vars:
+      FEATURE: '{{default "post" .FEATURE}}'
+    cmds:
+      - go run cmd/genapi/main.go {{.FEATURE}}
+    silent: false
+
+  # 🔥 Generate complete API (SQLc + handlers/service/router)
+  gen-full:
+    desc: "Generate both SQLc repository and API code"
+    vars:
+      FEATURE: '{{default "post" .FEATURE}}'
+    cmds:
+      - task: gen
+      - go run cmd/genapi/main.go {{.FEATURE}}
+    silent: false
+
+  # 🚀 Generate everything (SQLc + API + Swagger)
+  gen-complete:
+    desc: "Generate SQLc, API, and Swagger documentation"
+    vars:
+      FEATURE: '{{default "post" .FEATURE}}'
+    cmds:
+      - task: gen
+      - go run cmd/genapi/main.go {{.FEATURE}}
+      - task: swagger-gen
+    silent: false
+
+  # 🔄 Clean and regenerate everything
+  gen-fresh:
+    desc: "Clean all generated files and regenerate everything"
+    vars:
+      FEATURE: '{{default "post" .FEATURE}}'
+    cmds:
+      - task: clean-api
+      - task: gen-complete
+        vars:
+          FEATURE: '{{.FEATURE}}'
+    silent: false
+
+  # 🧹 Clean generated API files (Windows)
+  clean-api:
+    desc: "Clean all generated API files"
+    platforms: [windows]
+    cmds:
+      - powershell -Command "if (Test-Path 'internal\\generated\\api') { Remove-Item -Path 'internal\\generated\\api' -Recurse -Force; Write-Host '✅ Cleaned internal\\generated\\api directory' -ForegroundColor Green } else { Write-Host '📁 No internal\\generated\\api directory found' -ForegroundColor Yellow }"
+    silent: false
+
+  # 🧹 Clean generated API files (Unix)
+  clean-api-unix:
+    desc: "Clean all generated API files (Unix/Linux/macOS)"
+    platforms: [linux, darwin]
+    cmds:
+      - rm -rf internal/generated/api/*/
+    silent: false
+
+  # 📋 List all available SQL queries by feature - FIXED POWERSHELL SYNTAX
+  list-queries:
+    desc: "List all SQL queries organized by feature"
+    platforms: [windows]
+    cmds:
+      - |
+        powershell -Command "
+        Write-Host '📋 Available SQL Queries:' -ForegroundColor Cyan;
+        Write-Host '========================' -ForegroundColor Cyan;
+        Write-Host '';
+        $files = Get-ChildItem -Path 'queries\\*.sql' -ErrorAction SilentlyContinue;
+        if ($files) {
+          foreach ($file in $files) {
+            $feature = $file.BaseName;
+            Write-Host \"🔹 Feature: $feature\" -ForegroundColor Yellow;
+            $content = Get-Content $file.FullName;
+            $queries = $content | Select-String '-- name:';
+            if ($queries) {
+              foreach ($query in $queries) {
+                $cleanQuery = $query.Line -replace '-- name:', '  ├── ';
+                Write-Host $cleanQuery -ForegroundColor Green;
+              }
+            } else {
+              Write-Host '  └── No queries found' -ForegroundColor Red;
+            }
+            Write-Host '';
+          }
+        } else {
+          Write-Host '❌ No SQL files found in queries/ directory' -ForegroundColor Red;
+        }"
+    silent: false
+
+  # 📋 List all available SQL queries by feature (Unix)
+  list-queries-unix:
+    desc: "List all SQL queries organized by feature (Unix/Linux/macOS)"
+    platforms: [linux, darwin]
+    cmds:
+      - |
+        echo "📋 Available SQL Queries:"
+        echo "========================"
+        for file in queries/*.sql; do
+          if [ -f "$file" ]; then
+            feature=$(basename "$file" .sql)
+            echo "🔹 Feature: $feature"
+            grep -n "-- name:" "$file" | sed 's/-- name:/  ├── /' || echo "  └── No queries found"
+            echo ""
+          fi
+        done
+    silent: false
+
+  # 🔍 Generate API for existing features (auto-detect) - Windows
+  gen-all:
+    desc: "Generate APIs for all detected features"
+    platforms: [windows]
+    cmds:
+      - |
+        powershell -Command "
+        Write-Host '🔍 Auto-detecting features from queries/ directory...' -ForegroundColor Cyan;
+        $files = Get-ChildItem -Path 'queries\\*.sql' -ErrorAction SilentlyContinue;
+        if ($files) {
+          foreach ($file in $files) {
+            $feature = $file.BaseName;
+            Write-Host \"🚀 Generating API for feature: $feature\" -ForegroundColor Green;
+            go run cmd/genapi/main.go $feature;
+          }
+        } else {
+          Write-Host '❌ No SQL files found in queries/ directory' -ForegroundColor Red;
+        }"
+    silent: false
+
+  # 🔍 Generate API for existing features (auto-detect) - Unix
+  gen-all-unix:
+    desc: "Generate APIs for all detected features (Unix/Linux/macOS)"
+    platforms: [linux, darwin]
+    cmds:
+      - |
+        echo "🔍 Auto-detecting features from queries/ directory..."
+        for file in queries/*.sql; do
+          if [ -f "$file" ]; then
+            feature=$(basename "$file" .sql)
+            echo "🚀 Generating API for feature: $feature"
+            go run cmd/genapi/main.go "$feature"
+          fi
+        done
+    silent: false
+
+  # 📚 Generate Swagger documentation
+  swagger-gen:
+    desc: "Generate Swagger documentation"
+    cmds:
+      - swag init -g cmd/server/main.go -o docs/ --parseDependency --parseInternal --parseDepth 5 --instanceName swagger
+    silent: false
+
+  # 🔄 Format Swagger annotations
+  swagger-fmt:
+    desc: "Format Swagger annotations"
+    cmds:
+      - swag fmt -g cmd/server/main.go --exclude internal/generated
+    silent: false
+
+  # 🏗️ Build the application
+  build:
+    desc: "Build the application"
+    cmds:
+      - go build -o bin/civilregistry.exe cmd/server/main.go
+    silent: false
+
+  # 🏃 Run the built application
+  run-built:
+    desc: "Run the built application"
+    platforms: [windows]
+    cmds:
+      - bin\\civilregistry.exe
+    silent: false
+
+  # 🏃 Run the built application (Unix)
+  run-built-unix:
+    desc: "Run the built application (Unix/Linux/macOS)"
+    platforms: [linux, darwin]
+    cmds:
+      - ./bin/civilregistry
+    silent: false
+
+  # 📚 Help - show all available tasks
+  help:
+    desc: "Show all available tasks with descriptions"
+    cmds:
+      - |
+        powershell -Command "
+        Write-Host '🛠  Civil Registry - Available Tasks:' -ForegroundColor Cyan;
+        Write-Host '====================================' -ForegroundColor Cyan;
+        Write-Host '';
+        Write-Host '🔧 Development:' -ForegroundColor Yellow;
+        Write-Host '  task dev          - Run all watchers (templ + server + tailwind)' -ForegroundColor White;
+        Write-Host '  task templ        - Run templ in watch mode' -ForegroundColor White;
+        Write-Host '  task server       - Run backend server with air' -ForegroundColor White;
+        Write-Host '  task tailwind     - Watch and compile Tailwind CSS' -ForegroundColor White;
+        Write-Host '';
+        Write-Host '🗃  Database:' -ForegroundColor Yellow;
+        Write-Host '  task up           - Run migrations up' -ForegroundColor White;
+        Write-Host '  task reset        - Reset database (drop all & reapply)' -ForegroundColor White;
+        Write-Host '';
+        Write-Host '⚙️  Code Generation:' -ForegroundColor Yellow;
+        Write-Host '  task gen          - Generate SQLc repository code' -ForegroundColor White;
+        Write-Host '  task gen-api FEATURE=post     - Generate API for specific feature' -ForegroundColor White;
+        Write-Host '  task gen-full FEATURE=post    - Generate SQLc + API code' -ForegroundColor White;
+        Write-Host '  task gen-complete FEATURE=post - Generate SQLc + API + Swagger' -ForegroundColor White;
+        Write-Host '  task gen-fresh FEATURE=post   - Clean + Generate everything' -ForegroundColor White;
+        Write-Host '  task gen-all      - Generate APIs for all features' -ForegroundColor White;
+        Write-Host '  task swagger-gen  - Generate Swagger documentation' -ForegroundColor White;
+        Write-Host '  task swagger-fmt  - Format Swagger annotations' -ForegroundColor White;
+        Write-Host '';
+        Write-Host '📋 Utilities:' -ForegroundColor Yellow;
+        Write-Host '  task list-queries - List all SQL queries by feature' -ForegroundColor White;
+        Write-Host '  task clean-api    - Clean generated API files' -ForegroundColor White;
+        Write-Host '  task build        - Build the application' -ForegroundColor White;
+        Write-Host '  task run-built    - Run the built application' -ForegroundColor White;
+        Write-Host '  task help         - Show this help' -ForegroundColor White;
+        Write-Host '';
+        Write-Host '💡 Examples:' -ForegroundColor Green;
+        Write-Host '  task gen-fresh FEATURE=post    - Clean + generate everything for post' -ForegroundColor Gray;
+        Write-Host '  task gen-complete FEATURE=post - Generate everything for post' -ForegroundColor Gray;
+        Write-Host '  task gen-api FEATURE=civil     - Generate API for civil feature' -ForegroundColor Gray;
+        Write-Host '  task swagger-gen               - Generate Swagger docs' -ForegroundColor Gray;
+        Write-Host '  task dev                       - Start development environment' -ForegroundColor Gray;
+        Write-Host '';
+        Write-Host '🌐 URLs:' -ForegroundColor Magenta;
+        Write-Host '  http://localhost:8080          - Main application' -ForegroundColor Gray;
+        Write-Host '  http://localhost:8080/swagger/ - Swagger documentation' -ForegroundColor Gray;
+        Write-Host '  http://localhost:8080/api/post/health - API health check' -ForegroundColor Gray;
+        "
+    silent: false
+
+  # 🚀 Quick generate tasks for common features
+  gen-civil:
+    desc: "Generate API for civil feature"
+    cmds:
+      - go run cmd/genapi/main.go civil
+    silent: false
+
+  gen-post:
+    desc: "Generate API for post feature"
+    cmds:
+      - go run cmd/genapi/main.go post
+    silent: false
+
+  gen-user:
+    desc: "Generate API for user feature"
+    cmds:
+      - go run cmd/genapi/main.go user
+    silent: false
+
+  # 🐛 Debug tasks
+  debug-files:
+    desc: "Debug - show project file structure"
+    cmds:
+      - |
+        powershell -Command "
+        Write-Host '📁 Project Structure:' -ForegroundColor Cyan;
+        Write-Host '====================' -ForegroundColor Cyan;
+        Write-Host '';
+        Write-Host '📋 SQL Files:' -ForegroundColor Yellow;
+        if (Test-Path 'queries') { Get-ChildItem -Path 'queries\\*.sql' | ForEach-Object { Write-Host \"  ✅ $($_.Name)\" -ForegroundColor Green } } else { Write-Host '  ❌ No queries/ directory' -ForegroundColor Red };
+        Write-Host '';
+        Write-Host '📋 Repository Files:' -ForegroundColor Yellow;
+        if (Test-Path 'internal\\repository') { Get-ChildItem -Path 'internal\\repository\\*.go' | ForEach-Object { Write-Host \"  ✅ $($_.Name)\" -ForegroundColor Green } } else { Write-Host '  ❌ No internal/repository/ directory' -ForegroundColor Red };
+        Write-Host '';
+        Write-Host '📋 Generated API Files:' -ForegroundColor Yellow;
+        if (Test-Path 'internal\\generated\\api') { Get-ChildItem -Path 'internal\\generated\\api' -Recurse -File | ForEach-Object { Write-Host \"  ✅ $($_.FullName.Replace((Get-Location).Path + '\\', ''))\" -ForegroundColor Green } } else { Write-Host '  ❌ No internal/generated/api/ directory' -ForegroundColor Red };
+        "
+    silent: false
+
+  debug-queries:
+    desc: "Debug - run API generator with verbose output"
+    vars:
+      FEATURE: '{{default "post" .FEATURE}}'
+    cmds:
+      - |
+        powershell -Command "
+        Write-Host '🐛 Debug Mode: Generating API for {{.FEATURE}}' -ForegroundColor Magenta;
+        Write-Host '=============================================' -ForegroundColor Magenta;
+        go run cmd/genapi/main.go {{.FEATURE}};
+        "
     silent: false

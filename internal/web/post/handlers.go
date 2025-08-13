@@ -1,10 +1,11 @@
-package civil
+package post
 
 import (
-	restapi "github.com/eif-courses/civilregistry/internal/api/civil"
+	"net/http"
+
+	restapi "github.com/eif-courses/civilregistry/internal/generated/api/post"
 	"github.com/eif-courses/civilregistry/internal/web/ui"
 	"go.uber.org/zap"
-	"net/http"
 )
 
 type Handlers struct {
